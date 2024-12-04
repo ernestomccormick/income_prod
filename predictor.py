@@ -20,7 +20,7 @@ def connect_to_duckdb():
 # Load the latest data for prediction
 def load_latest_data():
     conn = connect_to_duckdb()
-    df = conn.execute("SELECT * FROM crypto_data ORDER BY Time DESC LIMIT 61").df()
+    df = conn.execute("SELECT * FROM ethusd ORDER BY Time DESC LIMIT 61").df()
     conn.close()
     return df.sort_values('Time')
 
@@ -96,7 +96,7 @@ def predict_price():
 
     # Save the prediction to DuckDB
     save_prediction_to_duckdb(
-    timestamp=X_test.index[0],
+    timestamp=current_time,
     current_close_price=float(current_close_price),
     predicted_next_absolute_max=float(predicted_next_absolute_max),
     predicted_percentage_change=predicted_percentage_change,

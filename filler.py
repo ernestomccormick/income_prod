@@ -20,15 +20,26 @@ def read_data_from_table(table_name):
     return df
 
 # Function to fill missing timestamps
+
 def fill_missing_data(df):
     # Ensure dataframe is sorted by time
     df = df.sort_values('Time').reset_index(drop=True)
+
+    # Drop duplicate timestamps, keeping the first occurrence
+    df = df.drop_duplicates(subset='Time', keep='first')
+
+    # Set the 'Time' column as the index
     df.set_index('Time', inplace=True)
+
     # Reindex to fill missing timestamps
     idx = pd.date_range(df.index[0], df.index[-1], freq='1min')
     df = df.reindex(idx, method='ffill').reset_index()
+
+    # Rename the index back to 'Time'
     df.rename(columns={'index': 'Time'}, inplace=True)
+
     return df
+
 
 # Function to update the DuckDB table with filled data
 def update_duckdb_table(table_name, df):
@@ -39,7 +50,7 @@ def update_duckdb_table(table_name, df):
 
 # Main function to handle the filling process
 def fill_missing():
-    table_name = 'crypto_data'
+    table_name = 'ethusd'
     logging.info("Starting to fill missing data...")
     df = read_data_from_table(table_name)
     if not df.empty:

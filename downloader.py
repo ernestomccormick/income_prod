@@ -46,7 +46,7 @@ def fetch_ohlcv_data(pair, start_time):
 
 # Main function to handle the update process
 def update_history():
-    table_name = 'crypto_data'
+    table_name = 'ethusd'
     symbol = 'ETH/USDT'
     conn = connect_to_duckdb()
 
@@ -69,7 +69,7 @@ def update_history():
             df = df[df['Time'] > latest_timestamp]  # Ensure no duplicates
             if not df.empty:
                 logging.info(f"Inserting {len(df)} new records into {table_name}.")
-                print(logging.info(f"Inserting {len(df)} new records into {table_name}."))
+                print(f"Inserting {len(df)} new records into {table_name}.")
                 conn.execute(f"INSERT INTO {table_name} SELECT * FROM df")
             else:
                 logging.info("No new data to insert.")
