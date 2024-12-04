@@ -1,0 +1,8 @@
+ccxt_credentials.py
+
+*.log
+*.duckdb
+*.pyc
+*.wal
+*.csv
+*.json
