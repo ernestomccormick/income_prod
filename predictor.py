@@ -1,6 +1,6 @@
 # predictor.py
 
-import duckdb
+import sqlite3
 import pandas as pd
 import xgboost as xgb
 import gc
@@ -13,14 +13,17 @@ import time
 logging.basicConfig(filename='crypto_predictor.log', level=logging.INFO, 
                     format='%(asctime)s:%(levelname)s:%(message)s')
 
-# Function to connect to DuckDB
-def connect_to_duckdb():
-    return duckdb.connect("crypto_data.duckdb")
+# Function to connect to SQLite
+def connect_to_sqlite():
+    conn = sqlite3.connect("crypto_data.sqlite", check_same_thread=False)
+    conn.execute("PRAGMA journal_mode=WAL;")  # Enable concurrent reads and writes
+    return conn
 
 # Load the latest data for prediction
 def load_latest_data():
-    conn = connect_to_duckdb()
-    df = conn.execute("SELECT * FROM ethusd ORDER BY Time DESC LIMIT 61").df()
+    conn = connect_to_sqlite()
+    query = "SELECT * FROM ethusd ORDER BY Time DESC LIMIT 61"
+    df = pd.read_sql_query(query, conn)
     conn.close()
     return df.sort_values('Time')
 
@@ -82,84 +85,44 @@ def predict_price():
     print(f"Prediction made {y_pred} at {current_time} with Close {current_close_price}: Predicted change {predicted_percentage_change:.2f}%")
     logging.info(f"Prediction {y_pred} made at {current_time} with Close {current_close_price}: Predicted change {predicted_percentage_change:.2f}%")
 
+    # Save the prediction to SQLite
+    save_prediction_to_sqlite(
+        timestamp=current_time,
+        current_close_price=float(current_close_price),
+        predicted_next_absolute_max=float(predicted_next_absolute_max),
+        predicted_percentage_change=predicted_percentage_change,
+    )
 
-    # Get XGBoost hyperparameters
-    model_params = model.get_xgb_params()
-    # Extract the required hyperparameters
-    hyperparameters = {
-        'n_estimators': model_params.get('n_estimators', None),
-        'max_depth': model_params.get('max_depth', None),
-        'learning_rate': model_params.get('learning_rate', None),
-        'min_child_weight': model_params.get('min_child_weight', None),
-        'colsample_bytree': model_params.get('colsample_bytree', None)
-    }
-
-    # Save the prediction to DuckDB
-    save_prediction_to_duckdb(
-    timestamp=current_time,
-    current_close_price=float(current_close_price),
-    predicted_next_absolute_max=float(predicted_next_absolute_max),
-    predicted_percentage_change=predicted_percentage_change,
-    hyperparameters=hyperparameters
-)
-
-    # Trigger market transaction
-    # transaction_successful = execute_market_transaction()
-
-    # After market transaction is confirmed, retrain the model
-    # if transaction_successful:
-    #     train_model_thread = threading.Thread(target=trainer.train_model)
-    #     train_model_thread.start()
-
-# Function to save prediction to DuckDB
-def save_prediction_to_duckdb(timestamp, current_close_price, predicted_next_absolute_max, predicted_percentage_change, hyperparameters):
-    conn = connect_to_duckdb()
+# Function to save prediction to SQLite
+def save_prediction_to_sqlite(timestamp, current_close_price, predicted_next_absolute_max, predicted_percentage_change):
+    conn = connect_to_sqlite()
     cursor = conn.cursor()
 
     # Check if 'predictions' table exists, create if not
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS predictions (
-            timestamp TIMESTAMP,
-            current_close_price DOUBLE,
-            predicted_next_absolute_max DOUBLE,
-            predicted_percentage_change DOUBLE,
-            n_estimators INTEGER,
-            max_depth INTEGER,
-            learning_rate DOUBLE,
-            min_child_weight INTEGER,
-            colsample_bytree DOUBLE
+            timestamp TEXT,
+            current_close_price REAL,
+            predicted_next_absolute_max REAL,
+            predicted_percentage_change REAL
         )
     """)
 
     # Prepare the insert statement
     insert_query = """
-        INSERT INTO predictions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO predictions VALUES (?, ?, ?, ?)
     """
 
     # Prepare the data
     data_tuple = (
-        pd.to_datetime(timestamp),
+        timestamp,
         current_close_price,
         predicted_next_absolute_max,
-        predicted_percentage_change,
-        hyperparameters['n_estimators'],
-        hyperparameters['max_depth'],
-        hyperparameters['learning_rate'],
-        hyperparameters['min_child_weight'],
-        hyperparameters['colsample_bytree']
+        predicted_percentage_change
     )
 
     # Insert the data
     cursor.execute(insert_query, data_tuple)
     conn.commit()
     conn.close()
-    logging.info("Prediction saved to DuckDB 'predictions' table.")
-
-# Dummy function to simulate market transaction
-# def execute_market_transaction():
-#     # Implement your market transaction logic here
-#     # For this example, we'll simulate a transaction confirmation
-#     logging.info("Executing market transaction...")
-#     # Simulate transaction processing time
-#     logging.info("Market transaction confirmed.")
-#     return True
+    logging.info("Prediction saved to SQLite 'predictions' table.")

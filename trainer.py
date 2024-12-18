@@ -1,6 +1,6 @@
 # trainer.py
 
-import duckdb
+import sqlite3
 import pandas as pd
 import numpy as np
 import xgboost as xgb
@@ -11,14 +11,17 @@ import logging
 logging.basicConfig(filename='crypto_trainer.log', level=logging.INFO, 
                     format='%(asctime)s:%(levelname)s:%(message)s')
 
-# Function to connect to DuckDB
-def connect_to_duckdb():
-    return duckdb.connect("crypto_data.duckdb")
+# Function to connect to SQLite
+def connect_to_sqlite():
+    conn = sqlite3.connect("crypto_data.sqlite", check_same_thread=False)
+    conn.execute("PRAGMA journal_mode=WAL;")  # Enable concurrent reads and writes
+    return conn
 
-# Load data for training
-def load_training_data():
-    conn = connect_to_duckdb()
-    df = conn.execute("SELECT * FROM crypto_data").df()
+# Function to read data from the SQLite table
+def read_data_from_table(table_name):
+    conn = connect_to_sqlite()
+    query = f"SELECT * FROM {table_name}"
+    df = pd.read_sql_query(query, conn)
     conn.close()
     return df
 
@@ -74,9 +77,10 @@ def calculate_target_variable(df, future_periods):
     return df
 
 # Training function
-def train_model():
+def train_model(hyperparameters=None):
     logging.info("Starting model training...")
-    data = load_training_data()
+    print("Starting model training...")
+    data = read_data_from_table('ethusd')
     previous_periods = list(range(60, 0, -1))
     future_periods = list(range(-1, -60, -1))
 
@@ -101,8 +105,8 @@ def train_model():
     X_val = validation_data[features]
     Y_val = validation_data[targets]
 
-    # Hyperparameters
-    hyperparameters = {
+    # Default hyperparameters
+    default_hyperparameters = {
         "n_estimators": 200,
         "max_depth": 3,
         "learning_rate": 0.1,
@@ -110,6 +114,14 @@ def train_model():
         "colsample_bytree": 0.5,
         "tree_method": 'hist',
     }
+
+    # Use provided hyperparameters or fall back to defaults
+    if hyperparameters is None:
+        hyperparameters = default_hyperparameters
+    else:
+        # Fill in missing hyperparameters with defaults
+        for key, value in default_hyperparameters.items():
+            hyperparameters.setdefault(key, value)
 
     # Define and train the model
     model = xgb.XGBRegressor(
@@ -125,4 +137,4 @@ def train_model():
     model.fit(X_train, Y_train)
     model.save_model("xgboost_model.json")
     logging.info("Model training completed and model saved.")
-
+    print("Model training completed and model saved.")
