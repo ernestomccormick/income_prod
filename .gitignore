@@ -6,3 +6,6 @@ ccxt_credentials.py
 *.wal
 *.csv
 *.json
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
