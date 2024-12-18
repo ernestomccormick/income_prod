@@ -49,7 +49,7 @@ def main():
         predictor.predict_price()
         end_time = time.time()
         print(f"Execution time: {end_time - start_time:.6f} seconds")
-        time.sleep(40)
+        time.sleep(35)
 
     
 if __name__ == "__main__":
