@@ -1,36 +1,21 @@
 # main.py
 
-import threading
 import time
 import downloader
 import filler
 import predictor
 import trainer
+import logging
+import time
 
-# def run_downloader():
-#     while True:
-#         downloader.update_history()
-#         filler.fill_missing()
-
-
-# def run_predictor():
-#     while True:
-#         predictor.predict_price()
+# Configure logging
+logging.basicConfig(
+    filename='crypto_data_main.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 def main():
-    # Start downloader and filler in one separated thread
-    # downloader_thread = threading.Thread(target=run_downloader)
-    # downloader_thread.daemon = True
-    # downloader_thread.start()
-
-    # Start predictor (can be in main thread or another thread)
-    # run_downloader()
-    # print("d")
-    # run_predictor()
-    # print("p")
-    # time.sleep(50)
-
-    # Custom hyperparameters
     custom_hyperparameters = {
         "n_estimators": 200,
         "max_depth": 3,
@@ -41,15 +26,22 @@ def main():
     }
 
     while True:
-        # Measure execution time
-        start_time = time.time()  # Record the start time
-        downloader.update_history()
-        filler.fill_missing()
-        trainer.train_model(hyperparameters=custom_hyperparameters)
-        predictor.predict_price()
-        end_time = time.time()
-        print(f"Execution time: {end_time - start_time:.6f} seconds")
-        time.sleep(35)
+        try:
+            start_time = time.time()
+            downloader.update_history()
+            filler.fill_missing()
+            trainer.train_model(hyperparameters=custom_hyperparameters)
+            predictor.predict_price()
+            end_time = time.time()
+            execution_time = end_time - start_time
+            logging.info(f"Successful execution. Time: {execution_time:.6f} seconds")
+            time.sleep(35)
+            
+        except Exception as e:
+            logging.error(f"Error occurred: {str(e)}", exc_info=True)
+            logging.info("Retrying in 5 seconds...")
+            time.sleep(5)
+            continue
 
     
 if __name__ == "__main__":
