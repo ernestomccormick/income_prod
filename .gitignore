@@ -9,3 +9,4 @@ ccxt_credentials.py
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+crypto_data.sqlite
