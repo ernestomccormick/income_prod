@@ -17,10 +17,10 @@ logging.basicConfig(
 
 def main():
     custom_hyperparameters = {
-        "n_estimators": 200,
-        "max_depth": 3,
-        "learning_rate": 0.1,
-        "min_child_weight": 5,
+        "n_estimators": 600,
+        "max_depth": 2,
+        "learning_rate": 0.2,
+        "min_child_weight": 1,
         "colsample_bytree": 0.5,
         "tree_method": 'hist',
     }
