@@ -95,3 +95,6 @@ def train_model(hyperparameters=None):
 
     logging.info("Model training completed and model saved.")
     print("Model training completed and model saved.")
+
+if __name__ == "__main__":
+    train_model()

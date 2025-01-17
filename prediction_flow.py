@@ -31,11 +31,11 @@ def main():
             downloader.update_history()
             filler.fill_missing()
             trainer.train_model(hyperparameters=custom_hyperparameters)
-            predictor.predict_price()
+            predictor.predict_latest_price()
             end_time = time.time()
             execution_time = end_time - start_time
             logging.info(f"Successful execution. Time: {execution_time:.6f} seconds")
-            time.sleep(35)
+            time.sleep(21)
             
         except Exception as e:
             logging.error(f"Error occurred: {str(e)}", exc_info=True)
