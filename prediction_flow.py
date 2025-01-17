@@ -23,6 +23,7 @@ def main():
         "min_child_weight": 1,
         "colsample_bytree": 0.5,
         "tree_method": 'hist',
+        "n_jobs": -1,
     }
 
     while True:
@@ -35,7 +36,7 @@ def main():
             end_time = time.time()
             execution_time = end_time - start_time
             logging.info(f"Successful execution. Time: {execution_time:.6f} seconds")
-            time.sleep(21)
+            # time.sleep(7)
             
         except Exception as e:
             logging.error(f"Error occurred: {str(e)}", exc_info=True)

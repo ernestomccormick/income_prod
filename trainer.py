@@ -70,6 +70,7 @@ def train_model(hyperparameters=None):
         "min_child_weight": 1,
         "colsample_bytree": 0.5,
         "tree_method": 'hist',
+        "n_jobs": -1,
     }
 
     # Merge provided hyperparameters with defaults
