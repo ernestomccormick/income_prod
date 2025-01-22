@@ -17,6 +17,15 @@ def load_training_data():
     query = "SELECT * FROM ethusd ORDER BY Time ASC"
     df = pd.read_sql_query(query, conn)
     conn.close()
+    # Ensure 'timestamp' is a datetime type
+    df['timestamp'] = pd.to_datetime(df['Time'], utc=True)
+
+    # Calculate the cutoff date: 3 months ago from now
+    three_months_ago = pd.Timestamp.utcnow() - pd.DateOffset(months=3)
+
+    # Keep only the data from the last 3 months
+    df = df.loc[df['timestamp'] >= three_months_ago]
+    
     return df
 
 # Feature augmentation for training
@@ -51,6 +60,8 @@ def find_best_hyperparameters():
     # Load and prepare data
     data = load_training_data()
     print("Data loaded successfully.")
+
+
     previous_periods = list(range(60, 0, -1))
     data_augmented = feature_augmentation_train(data, previous_periods)
     print("Feature augmentation completed.")
@@ -65,15 +76,15 @@ def find_best_hyperparameters():
 
     # Define parameter grid
     param_grid = {
-        'n_estimators': [600],
+        'n_estimators': [650, 700, 750],
         'max_depth': [2],
-        'learning_rate': [0.01, 0.2, 0.1],
-        'min_child_weight': [1, 5, 10],
-        'colsample_bytree': [0.5, 0.7, 1.0],
+        'learning_rate': [0.2],
+        'min_child_weight': [1],
+        'colsample_bytree': [0.5],
     }
 
     # Initialize model
-    model = xgb.XGBRegressor(tree_method='hist', random_state=42)
+    model = xgb.XGBRegressor(n_jobs=-1, random_state=42)
 
     # Define GridSearchCV
     grid_search = GridSearchCV(

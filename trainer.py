@@ -25,6 +25,15 @@ def train_model(hyperparameters=None):
 
     # Load data
     data = read_data_from_table('ethusd')
+
+    # Ensure 'timestamp' is a datetime type
+    data['timestamp'] = pd.to_datetime(data['Time'], utc=True)
+
+    # Calculate the cutoff date: 3 months ago from now
+    three_months_ago = pd.Timestamp.utcnow() - pd.DateOffset(months=3)
+
+    # Keep only the data from the last 3 months
+    data = data.loc[data['timestamp'] >= three_months_ago]
     
     # Define shift periods
     previous_periods = list(range(60, 0, -1))    # 60 previous 1-min periods
@@ -64,7 +73,7 @@ def train_model(hyperparameters=None):
 
     # Default hyperparameters
     default_hyperparameters = {
-        "n_estimators": 600,
+        "n_estimators": 700,
         "max_depth": 2,
         "learning_rate": 0.2,
         "min_child_weight": 1,

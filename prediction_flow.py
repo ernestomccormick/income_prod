@@ -17,7 +17,7 @@ logging.basicConfig(
 
 def main():
     custom_hyperparameters = {
-        "n_estimators": 600,
+        "n_estimators": 700,
         "max_depth": 2,
         "learning_rate": 0.2,
         "min_child_weight": 1,
@@ -33,10 +33,12 @@ def main():
             filler.fill_missing()
             trainer.train_model(hyperparameters=custom_hyperparameters)
             predictor.predict_latest_price()
+            time.sleep(40)
             end_time = time.time()
             execution_time = end_time - start_time
+            print(f"Successful execution. Time: {execution_time:.6f} seconds")
             logging.info(f"Successful execution. Time: {execution_time:.6f} seconds")
-            # time.sleep(7)
+
             
         except Exception as e:
             logging.error(f"Error occurred: {str(e)}", exc_info=True)
