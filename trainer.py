@@ -36,8 +36,8 @@ def train_model(hyperparameters=None):
     data = data.loc[data['timestamp'] >= three_months_ago]
     
     # Define shift periods
-    previous_periods = list(range(60, 0, -1))    # 60 previous 1-min periods
-    future_periods = list(range(-1, -60, -1))   # 60 future 1-min periods
+    previous_periods = list(range(30, 0, -1))    # 60 previous 1-min periods
+    future_periods = list(range(-1, -30, -1))   # 60 future 1-min periods
 
     # Feature engineering
     data_augmented = feature_augmentation(
@@ -61,19 +61,23 @@ def train_model(hyperparameters=None):
     features = core_features + previous_shift_features + previous_volume_shift_features
 
     # Split data into training and validation sets
-    div_test_training = -300
-    training_data = data_augmented.iloc[:div_test_training]
-    validation_data = data_augmented.iloc[div_test_training:]
+    # div_test_training = -300
+    # training_data = data_augmented.iloc[:div_test_training]
+    # validation_data = data_augmented.iloc[div_test_training:]
 
-    X_train = training_data[features]
-    Y_train = training_data[targets]
+    # X_train = training_data[features]
+    # Y_train = training_data[targets]
 
-    X_val = validation_data[features]
-    Y_val = validation_data[targets]
+    # X_val = validation_data[features]
+    # Y_val = validation_data[targets]
+
+    X_train = data_augmented[features]
+    Y_train = data_augmented[targets]
+
 
     # Default hyperparameters
     default_hyperparameters = {
-        "n_estimators": 700,
+        "n_estimators": 600,
         "max_depth": 2,
         "learning_rate": 0.2,
         "min_child_weight": 1,
@@ -100,7 +104,8 @@ def train_model(hyperparameters=None):
         n_jobs=4,
     )
 
-    model.fit(X_train, Y_train, eval_set=[(X_val, Y_val)], verbose=False)
+    # model.fit(X_train, Y_train, eval_set=[(X_val, Y_val)], verbose=False)
+    model.fit(X_train, Y_train, verbose=False)
     model.save_model("xgboost_model.json")
 
     logging.info("Model training completed and model saved.")

@@ -33,7 +33,7 @@ def main():
             filler.fill_missing()
             trainer.train_model(hyperparameters=custom_hyperparameters)
             predictor.predict_latest_price()
-            time.sleep(40)
+            time.sleep(18)
             end_time = time.time()
             execution_time = end_time - start_time
             print(f"Successful execution. Time: {execution_time:.6f} seconds")
