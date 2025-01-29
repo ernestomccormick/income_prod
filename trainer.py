@@ -36,8 +36,8 @@ def train_model(hyperparameters=None):
     data = data.loc[data['timestamp'] >= three_months_ago]
     
     # Define shift periods
-    previous_periods = list(range(30, 0, -1))    # 60 previous 1-min periods
-    future_periods = list(range(-1, -30, -1))   # 60 future 1-min periods
+    previous_periods = list(range(60, 0, -1))    # 60 previous 1-min periods
+    future_periods = list(range(-1, -60, -1))   # 60 future 1-min periods
 
     # Feature engineering
     data_augmented = feature_augmentation(
@@ -54,7 +54,8 @@ def train_model(hyperparameters=None):
     )
 
     # Define features and targets
-    targets = ['Next_absolute_max']
+    # targets = ['Next_absolute_max']
+    targets = ['Shift-59']
     core_features = ['Close', 'Volume', 'Hour', 'Minute']
     previous_shift_features = [f'Shift{p}' for p in previous_periods]
     previous_volume_shift_features = [f'VShift{p}' for p in previous_periods]
