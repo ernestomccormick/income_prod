@@ -72,12 +72,12 @@ def find_best_hyperparameters():
     features = core_features + previous_shift_features + previous_volume_shift_features
 
     X = data_augmented[features]
-    y = data_augmented['Close']  # Target variable
+    y = data_augmented['Shift59']  # Target variable
 
     # Define parameter grid
     param_grid = {
-        'n_estimators': [650, 700, 750],
-        'max_depth': [2],
+        'n_estimators': [200, 600, 700],
+        'max_depth': [2, 3, 6, 9],
         'learning_rate': [0.2],
         'min_child_weight': [1],
         'colsample_bytree': [0.5],
